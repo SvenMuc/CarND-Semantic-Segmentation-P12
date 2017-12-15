@@ -102,14 +102,16 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     layer_7_conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=1, strides=(1, 1),
                                         padding='same',
                                         kernel_initializer=tf.random_normal_initializer(stddev=KERNEL_INIT_STD_DEV),
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                        name='layer_7_conv_1x1')
 
     # upsample layer 7
     layer_7_upsampled = tf.layers.conv2d_transpose(layer_7_conv_1x1, num_classes, kernel_size=4, strides=(2, 2),
                                                    padding='same',
                                                    kernel_initializer=tf.random_normal_initializer(
                                                        stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                   name='layer_7_upsampled')
 
     ### LAYER 4 ###
     # 1x1 convolution of vgg layer 4
@@ -117,7 +119,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                                   padding='same',
                                                   kernel_initializer=tf.random_normal_initializer(
                                                       stddev=KERNEL_INIT_STD_DEV),
-                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                  name='layer_4_conv_1x1')
 
     # skip connections
     layer_4_skip = tf.add(layer_7_upsampled, layer_4_conv_1x1)
@@ -127,7 +130,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                                    padding='same',
                                                    kernel_initializer=tf.random_normal_initializer(
                                                        stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                   name='layer_4_upsampled')
 
     ### LAYER 3 ###
     # 1x1 convolution of vgg layer 3
@@ -135,7 +139,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                                   padding='same',
                                                   kernel_initializer=tf.random_normal_initializer(
                                                       stddev=KERNEL_INIT_STD_DEV),
-                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                  name='layer_3_conv_1x1')
     # skip connections
     layer_3_skip = tf.add(layer_4_upsampled, layer_3_conv_1x1)
 
@@ -144,7 +149,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                                    padding='same',
                                                    kernel_initializer=tf.random_normal_initializer(
                                                        stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG))
+                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                   name='layer_3_upsampled')
 
     return layer_3_upsampled
 
@@ -226,6 +232,33 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                                                                           learning_rate: LEARNING_RATE})
             stop_time = time.time()
             image_count += len(image)
+
+            #for op in tf.get_default_graph().get_operations():
+            #    print(str(op.name))
+
+            # graph = tf.get_default_graph()
+            # input_layer = graph.get_tensor_by_name('image_input:0')
+            # layer_3 = graph.get_tensor_by_name('layer3_out:0')
+            # layer_4 = graph.get_tensor_by_name('layer4_out:0')
+            # layer_7 = graph.get_tensor_by_name('layer7_out:0')
+            # layer_7_conv_1x1 = graph.get_tensor_by_name('layer_7_conv_1x1/Conv2D:0')
+            # layer_7_upsampled = graph.get_tensor_by_name('layer_7_upsampled/conv2d_transpose:0')
+            # layer_4_conv_1x1 = graph.get_tensor_by_name('layer_4_conv_1x1/conv2d_transpose:0')
+            # layer_4_upsampled = graph.get_tensor_by_name('layer_4_upsampled/conv2d_transpose:0')
+            # layer_3_conv_1x1 = graph.get_tensor_by_name('layer_3_conv_1x1/conv2d_transpose:0')
+            # layer_3_upsampled = graph.get_tensor_by_name('layer_3_upsampled/conv2d_transpose:0')
+            #
+            # print("input_layer:       " + str(sess.run(tf.shape(input_layer), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_3:           " + str(sess.run(tf.shape(layer_3), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_4:           " + str(sess.run(tf.shape(layer_4), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_7:           " + str(sess.run(tf.shape(layer_7), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_7_conv_1x1:  " + str(sess.run(tf.shape(layer_7_conv_1x1), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_7_upsampled: " + str(sess.run(tf.shape(layer_7_upsampled), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_4_conv_1x1:  " + str(sess.run(tf.shape(layer_4_conv_1x1), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_4_upsampled: " + str(sess.run(tf.shape(layer_4_upsampled), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_3_conv_1x1:  " + str(sess.run(tf.shape(layer_3_conv_1x1), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # print("layer_3_upsampled: " + str(sess.run(tf.shape(layer_3_upsampled), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
+            # exit(0)
 
             text = "Epoch: {:2d}".format(epoch + 1), "/ {:2d}".format(epochs) +\
                    " #Images: {:3d}".format(image_count) +\
