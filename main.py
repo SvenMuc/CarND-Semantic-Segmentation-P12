@@ -26,7 +26,7 @@ KEEP_PROB = 0.5
 LEARNING_RATE = 1e-4
 EPOCHS = 20
 SAFE_MODEL_AFTER_N_EPOCHS = 1   # safes the model after n trained epochs
-BATCH_SIZE = 32 #16
+BATCH_SIZE = 2                  # 2 for AWS instance 3 GB RAM, 16 for MBP CPU training
 NUM_CLASSES = 2                 # number of segmentation classes (road and non-road)
 IMAGE_SHAPE = (160, 576)
 IOU_ENABLED = True              # If true, IoU - intersection over union value is determined after each epoch
@@ -64,7 +64,6 @@ def load_vgg(sess, vgg_path):
     :param vgg_path: Path to vgg folder, containing "variables/" and "saved_model.pb"
     :return: Tuple of Tensors from VGG model (image_input, keep_prob, layer3_out, layer4_out, layer7_out)
     """
-    # TODO: Implement function
     #   Use tf.saved_model.loader.load to load the model and weights
     vgg_tag = 'vgg16'
     vgg_input_tensor_name = 'image_input:0'
@@ -206,7 +205,6 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     :param iou_obj: [0]: mean intersection-over-union [1]: operation for confusion matrix.
     """
-    # TODO: Implement function
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
     saver = tf.train.Saver()
@@ -294,7 +292,7 @@ def run():
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        # TODO: Build NN using load_vgg, layers, and optimize function
+        # Build NN using load_vgg, layers, and optimize function
         print("Load VGG model...")
         input_image, keep_prob, layer_3, layer_4, layer_7 = load_vgg(sess, vgg_path)
         layer_output = layers(layer_3, layer_4, layer_7, NUM_CLASSES)
@@ -309,17 +307,17 @@ def run():
         else:
             logits, train_op, cross_entropy_loss = optimize(layer_output, label, learning_rate, NUM_CLASSES)
 
-        # TODO: Train NN using the train_nn function
+        # Train NN using the train_nn function
         print("Start training...")
         train_nn(sess, EPOCHS, BATCH_SIZE, get_batches_fn, train_op, cross_entropy_loss, input_image, label, keep_prob,
                  learning_rate, iou_obj)
 
-        # safe the trained model
+        # Safe the trained model
         print("Save trained model...")
         saver = tf.train.Saver()
         saver.save(sess, './runs/semantic_segmentation_model.ckpt')
 
-        # TODO: Save inference data using helper.save_inference_samples
+        # Save inference data using helper.save_inference_samples
         print("Save inference samples...")
         helper.save_inference_samples(RUNS_DIR, DATA_DIR, sess, IMAGE_SHAPE, logits, keep_prob, input_image)
 
