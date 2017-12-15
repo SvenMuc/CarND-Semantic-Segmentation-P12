@@ -6,12 +6,11 @@ dependencies:
     - python==3.5.2
     - numpy
     - matplotlib
-    - jupyter
     - pillow
     - scipy
     - ffmpeg
     - imageio==2.1.2
     - pip:
         - moviepy
-        - tensorflow==1.4
+        - tensorflow-gpu==1.4
         - tensorflow-tensorboard
