@@ -265,7 +265,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         # safe model checkpoint after configured number of epochs
         if (epoch + 1) % SAFE_MODEL_AFTER_N_EPOCHS == 0:
-            print("Safe model after epoch {}...".format(epoch + 1))
+            print("Save model after epoch {}...".format(epoch + 1))
             saver.save(sess, os.path.join(RUNS_DIR, 'epoch_' + str(epoch + 1) + '.ckpt'))
 
 
@@ -315,7 +315,7 @@ def run():
                  learning_rate, iou_obj)
 
         # safe the trained model
-        print("Safe trained model...")
+        print("Save trained model...")
         saver = tf.train.Saver()
         saver.save(sess, './runs/semantic_segmentation_model.ckpt')
 
