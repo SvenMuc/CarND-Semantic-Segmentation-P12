@@ -7,7 +7,7 @@ DIR_KITTI="data_road"
 echo "Create data directory if not exists..."
 
 if [ ! -d "$DIR_DATA" ]; then
-  mkdir$DIR_DATA
+  mkdir $DIR_DATA
 else
     echo "  INFO: $DIR_DATA already exists."
 fi
