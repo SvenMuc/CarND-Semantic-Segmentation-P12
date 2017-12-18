@@ -33,6 +33,7 @@ IOU_ENABLED = True              # If true, IoU - intersection over union value i
 
 DATA_DIR = './data'
 RUNS_DIR = './runs'
+SUMMARY_DIR = './tensorboard_log'
 
 
 def printStatistics():
@@ -97,60 +98,62 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    ### LAYER 7 ##
-    # preserve spacial information by 1x1 convolution
-    layer_7_conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=1, strides=(1, 1),
-                                        padding='same',
-                                        kernel_initializer=tf.random_normal_initializer(stddev=KERNEL_INIT_STD_DEV),
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                        name='layer_7_conv_1x1')
 
-    # upsample layer 7
-    layer_7_upsampled = tf.layers.conv2d_transpose(layer_7_conv_1x1, num_classes, kernel_size=4, strides=(2, 2),
-                                                   padding='same',
-                                                   kernel_initializer=tf.random_normal_initializer(
-                                                       stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                                   name='layer_7_upsampled')
+    with tf.name_scope('decoder'):
+        ### LAYER 7 ##
+        # preserve spacial information by 1x1 convolution
+        layer_7_conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=1, strides=(1, 1),
+                                            padding='same',
+                                            kernel_initializer=tf.random_normal_initializer(stddev=KERNEL_INIT_STD_DEV),
+                                            kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                            name='layer_7_conv_1x1')
 
-    ### LAYER 4 ###
-    # 1x1 convolution of vgg layer 4
-    layer_4_conv_1x1 = tf.layers.conv2d_transpose(vgg_layer4_out, num_classes, kernel_size=1, strides=(1, 1),
-                                                  padding='same',
-                                                  kernel_initializer=tf.random_normal_initializer(
-                                                      stddev=KERNEL_INIT_STD_DEV),
-                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                                  name='layer_4_conv_1x1')
+        # upsample layer 7
+        layer_7_upsampled = tf.layers.conv2d_transpose(layer_7_conv_1x1, num_classes, kernel_size=4, strides=(2, 2),
+                                                       padding='same',
+                                                       kernel_initializer=tf.random_normal_initializer(
+                                                           stddev=KERNEL_INIT_STD_DEV),
+                                                       kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                       name='layer_7_upsampled')
 
-    # skip connections
-    layer_4_skip = tf.add(layer_7_upsampled, layer_4_conv_1x1)
+        ### LAYER 4 ###
+        # 1x1 convolution of vgg layer 4
+        layer_4_conv_1x1 = tf.layers.conv2d_transpose(vgg_layer4_out, num_classes, kernel_size=1, strides=(1, 1),
+                                                      padding='same',
+                                                      kernel_initializer=tf.random_normal_initializer(
+                                                          stddev=KERNEL_INIT_STD_DEV),
+                                                      kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                      name='layer_4_conv_1x1')
 
-    # upsample layer 4
-    layer_4_upsampled = tf.layers.conv2d_transpose(layer_4_skip, num_classes, kernel_size=4, strides=(2, 2),
-                                                   padding='same',
-                                                   kernel_initializer=tf.random_normal_initializer(
-                                                       stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                                   name='layer_4_upsampled')
+        # skip connections
+        layer_4_skip = tf.add(layer_7_upsampled, layer_4_conv_1x1)
 
-    ### LAYER 3 ###
-    # 1x1 convolution of vgg layer 3
-    layer_3_conv_1x1 = tf.layers.conv2d_transpose(vgg_layer3_out, num_classes, kernel_size=1, strides=(1, 1),
-                                                  padding='same',
-                                                  kernel_initializer=tf.random_normal_initializer(
-                                                      stddev=KERNEL_INIT_STD_DEV),
-                                                  kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                                  name='layer_3_conv_1x1')
-    # skip connections
-    layer_3_skip = tf.add(layer_4_upsampled, layer_3_conv_1x1)
+        # upsample layer 4
+        layer_4_upsampled = tf.layers.conv2d_transpose(layer_4_skip, num_classes, kernel_size=4, strides=(2, 2),
+                                                       padding='same',
+                                                       kernel_initializer=tf.random_normal_initializer(
+                                                           stddev=KERNEL_INIT_STD_DEV),
+                                                       kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                       name='layer_4_upsampled')
 
-    # upsample layer 3
-    layer_3_upsampled = tf.layers.conv2d_transpose(layer_3_skip, num_classes, kernel_size=16, strides=(8, 8),
-                                                   padding='same',
-                                                   kernel_initializer=tf.random_normal_initializer(
-                                                       stddev=KERNEL_INIT_STD_DEV),
-                                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
-                                                   name='layer_3_upsampled')
+        ### LAYER 3 ###
+        # 1x1 convolution of vgg layer 3
+        layer_3_conv_1x1 = tf.layers.conv2d_transpose(vgg_layer3_out, num_classes, kernel_size=1, strides=(1, 1),
+                                                      padding='same',
+                                                      kernel_initializer=tf.random_normal_initializer(
+                                                          stddev=KERNEL_INIT_STD_DEV),
+                                                      kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                      name='layer_3_conv_1x1')
+        # skip connections
+        layer_3_skip = tf.add(layer_4_upsampled, layer_3_conv_1x1)
+
+        # upsample layer 3
+        layer_3_upsampled = tf.layers.conv2d_transpose(layer_3_skip, num_classes, kernel_size=16, strides=(8, 8),
+                                                       padding='same',
+                                                       kernel_initializer=tf.random_normal_initializer(
+                                                           stddev=KERNEL_INIT_STD_DEV),
+                                                       kernel_regularizer=tf.contrib.layers.l2_regularizer(L2_REG),
+                                                       name='layer_3_upsampled')
 
     return layer_3_upsampled
 
@@ -168,23 +171,31 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, iou_enabl
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    # reshape logits and labels for cross entropy calculation
-    logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
-    labels = tf.reshape(correct_label, (-1, num_classes))
 
-    # define loss function
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels))
+    with tf.name_scope('cross_entropy'):
+        # reshape logits and labels for cross entropy calculation
+        logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
+        labels = tf.reshape(correct_label, (-1, num_classes))
+
+        # define loss function
+        cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels))
+
+    tf.summary.scalar('cross_entropy', cross_entropy_loss)
 
     # define adam optimizer for training
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(cross_entropy_loss)
+    with tf.name_scope('train'):
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        train_op = optimizer.minimize(cross_entropy_loss)
 
     # add IOU - intersection over union if enabled
     if iou_enabled:
-        prediction = tf.argmax(nn_last_layer, axis=3)
-        ground_truth = correct_label[:, :, :, 0]
-        iou, iou_op = tf.metrics.mean_iou(ground_truth, prediction, num_classes)
-        iou_obj = (iou, iou_op)
+        with tf.name_scope('intersection_over_union'):
+            prediction = tf.argmax(nn_last_layer, axis=3)
+            ground_truth = correct_label[:, :, :, 0]
+            iou, iou_op = tf.metrics.mean_iou(ground_truth, prediction, num_classes)
+            iou_obj = (iou, iou_op)
+
+        tf.summary.scalar('intersection_over_union', iou)
 
         return logits, train_op, cross_entropy_loss, iou_obj
     else:
@@ -215,6 +226,11 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     sess.run(tf.local_variables_initializer())
     saver = tf.train.Saver()
 
+    # Merge all the summaries and write them out to /tmp/mnist_logs (by default)
+    merged = tf.summary.merge_all()
+    train_writer = tf.summary.FileWriter(SUMMARY_DIR + '/train', sess.graph)
+    test_writer = tf.summary.FileWriter(SUMMARY_DIR + '/test')
+
     start_time = time.time()
 
     for epoch in range(epochs):
@@ -226,16 +242,21 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         for image, label in get_batches_fn(batch_size):
             start_batch_time = time.time()
 
-            _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={input_image: image,
+            summary, _, loss = sess.run([merged, train_op, cross_entropy_loss], feed_dict={input_image: image,
                                                                           correct_label: label,
                                                                           keep_prob: KEEP_PROB,
                                                                           learning_rate: LEARNING_RATE})
             stop_time = time.time()
             image_count += len(image)
 
+            train_writer.add_summary(summary, epoch)
+
+            ### DEBUG OUPUT START ###
+            # Debugging for graph op-names
             #for op in tf.get_default_graph().get_operations():
             #    print(str(op.name))
-
+            #
+            # Debugging for tensor sizes
             # graph = tf.get_default_graph()
             # input_layer = graph.get_tensor_by_name('image_input:0')
             # layer_3 = graph.get_tensor_by_name('layer3_out:0')
@@ -259,6 +280,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
             # print("layer_3_conv_1x1:  " + str(sess.run(tf.shape(layer_3_conv_1x1), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
             # print("layer_3_upsampled: " + str(sess.run(tf.shape(layer_3_upsampled), feed_dict={input_image: image, keep_prob: KEEP_PROB})))
             # exit(0)
+            ### DEBUG OUPUT END ###
 
             text = "Epoch: {:2d}".format(epoch + 1), "/ {:2d}".format(epochs) +\
                    " #Images: {:3d}".format(image_count) +\

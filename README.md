@@ -76,6 +76,13 @@ As depicted in the two diagrams below the cross entropy loss value increased dra
 
 ![loss][image_loss] ![mean IoU][image_mean_iou]
 
+### Tensorboard
+In order to visualize the FCN graph, the cross entropy and intersection-over-union progress I added several summary operations into the model and training methods. All relevant TensorBoard log files are stored in the `tensorboard_log` directory. The TensorBoard can be started with the following command. 
+
+```
+tensorboard --logdir=tensorboard_log/
+```
+
 ## Results
 The FCN classifies the road area quite well. It has some trouble to determine the road area in rail sections or in scenes with heavy cast shadows. This is due to the fact, that the training set with only 289 images is very small and not all scenarios in the test set are covered by the training set. By applying bigger training sets or image augmentation the performance could be further improved.
 
